@@ -1,0 +1,6 @@
+C:\Users\T-Gamer\source\repos\Websocketsteste\WebsocketConsole\bin\Debug\WebsocketConsole.exe.config
+C:\Users\T-Gamer\source\repos\Websocketsteste\WebsocketConsole\bin\Debug\WebsocketConsole.exe
+C:\Users\T-Gamer\source\repos\Websocketsteste\WebsocketConsole\bin\Debug\WebsocketConsole.pdb
+C:\Users\T-Gamer\source\repos\Websocketsteste\WebsocketConsole\obj\Debug\WebsocketConsole.csprojAssemblyReference.cache
+C:\Users\T-Gamer\source\repos\Websocketsteste\WebsocketConsole\obj\Debug\WebsocketConsole.exe
+C:\Users\T-Gamer\source\repos\Websocketsteste\WebsocketConsole\obj\Debug\WebsocketConsole.pdb

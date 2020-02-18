@@ -1,0 +1,349 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Cube.IO</title>
+    <style type="text/css">
+        canvas {
+            border: 1px solid black;
+        }
+        html{
+            background-color: black;
+        }
+        #meuCanvas {
+                image-rendering:optimizeSpeed;
+                margin-bottom: 20px;
+                margin-left: 20px;
+                margin-right: 20px;
+                display: inline-block;
+                vertical-align: top;
+            }
+        #infosessao{
+            color: white;
+            font-family: 'Comic Sans MS';
+        }
+    </style>
+    
+
+</head>
+<body>
+
+    
+    
+    <div align="center">
+        <h2 id="infosessao" color="white"> C U B E  <img src="imagens/cubeio.png" style="width:10%;height:10%;"></img></h2> 
+        <canvas id="meuCanvas">
+        </canvas>
+    </div>
+
+    <script type="text/javascript">
+        //variaveis globais
+        let socket;
+        var uri = "ws://localhost:5000/ws";
+        let tamanhoCelula = 15;
+        let margem = 0;
+        let celulas;
+        let json;
+        let jogadores;
+        let jogadorDoClient;
+        let infoSessao = document.getElementById("infosessao");
+        let calibragemNickx = 5 + tamanhoCelula, calibragemNicky = -8 - tamanhoCelula;
+
+        //
+
+        function handleKey(event)
+        {
+            if (event.which === 65)
+            {
+                socket.send("esquerda");
+                        return
+            }
+
+            if (event.which === 87)
+            {
+                        //originalmente cima
+                socket.send("cima");
+                        return
+            }
+
+            if (event.which === 68)
+            {
+                socket.send("direita");
+                        return
+            }
+            if (event.which === 83)
+            {
+                        //originalmente baixo
+                socket.send("baixo");
+                        return
+            }
+            
+        }
+        //document.addEventListener('keydown', handleKey);
+
+        var Key = {
+            _pressed: {},
+
+            LEFT: 65,
+            RIGHT: 68,
+            UP: 87,
+            DOWN: 83,
+
+            isDown: function (keyCode) {
+                console.log("1");
+                return this._pressed[keyCode];
+            },
+
+            onKeyDown: function (event) {
+                console.log("2");
+                console.log(event.which);
+                this._pressed[event.which] = true;
+                
+            },
+
+            onKeyUp: function (event) {
+                console.log("3");
+                delete this._pressed[event.which];
+
+            }
+        };
+
+        window.addEventListener('keydown', function (event) { Key.onKeyDown(event); }, false);
+        window.addEventListener('keyup', function (event) { Key.onKeyUp(event); }, false);
+
+        function moveUpdate() {
+            console.log("4");
+
+            if (Key.isDown(Key.UP))
+            {
+                    socket.send('cima');
+            }
+            else if (Key.isDown(Key.DOWN))
+            {
+
+                    socket.send('baixo');
+
+
+            }
+            else if (Key.isDown(Key.LEFT))
+            {
+
+                    socket.send('esquerda');
+
+ 
+            }
+            else if (Key.isDown(Key.RIGHT))
+            {
+                
+                    socket.send('direita');
+            }
+        }
+
+
+
+
+
+        
+
+        function DesenharDungeon(jsonObj, ctx)
+        {
+                for (var i = 0; i < celulas.length; i++)
+                {
+                    DesenharTile(ctx, jsonObj[i].coordx, jsonObj[i].coordy, jsonObj[i].tipoCel, jsonObj[i].secreta);
+      
+                }
+        }
+
+        function DesenharTile(ctx, x, y, tipoCel, secreta)
+            {
+            if(tipoCel == "chao")
+            {
+            var rnd = 1;
+
+               switch(rnd){
+                  case 1: 
+                  ctx.fillStyle = 'rgb(255, 120, 120)';
+                  ctx.strokeStyle = 'rgb(255, 140, 140)';
+                  break;
+                  case 2:
+                  ctx.fillStyle = 'rgb(120, 255, 120)';
+                  ctx.strokeStyle = 'rgb(140, 255, 140)';
+                  break;
+                  case 3:
+                  ctx.fillStyle = 'rgb(120, 120, 255)';
+                  ctx.strokeStyle = 'rgb(140, 140, 255)';
+                  break;
+               }
+            
+            
+            }
+            if(tipoCel == "contornoDungeon")
+            {
+            ctx.fillStyle = 'rgb(20, 20, 20)';
+            ctx.strokeStyle = 'rgb(25, 25, 25)';
+            }
+            if(tipoCel == "pSala")
+            {
+            ctx.fillStyle = 'rgb(20, 20, 20)';
+            ctx.strokeStyle = 'rgb(25, 25, 25)';
+            }
+            if(tipoCel == "parede")
+            {
+            ctx.fillStyle = 'rgb(20, 20, 20)';
+            ctx.strokeStyle = 'rgb(25, 25, 25)';
+            }
+            if(tipoCel == "caminho")
+            {
+            ctx.fillStyle = 'rgb(200, 200, 130)';
+            ctx.strokeStyle = 'rgb(205, 205, 135)';
+            }
+            if(tipoCel == "porta")
+            {
+            ctx.fillStyle = 'rgb(100, 100, 250)';
+            ctx.strokeStyle = 'rgb(105, 105, 255)';
+            }
+            if(tipoCel == "entrada" && secreta == false)
+            {
+            ctx.fillStyle = 'rgb(100, 100, 250)';
+            ctx.strokeStyle = 'rgb(105, 105, 255)';
+            }
+            if(tipoCel == "entrada" && secreta == true)
+            {
+            ctx.fillStyle = 'rgb(255, 255, 255)';
+            ctx.strokeStyle = 'rgb(0, 0, 0)';
+            }
+            if(tipoCel == "jogadorDoClient")
+            {
+            ctx.fillStyle = 'rgb(35, 175, 75)';
+            ctx.strokeStyle = 'rgb(0, 0, 0)';
+            }
+            if (tipoCel == "outroJogador")
+            {
+                ctx.fillStyle = 'rgb(238, 34, 45)';
+                ctx.strokeStyle = 'rgb(0, 0, 0)';
+            }
+            ctx.fillRect(margem + x*tamanhoCelula, margem + y*tamanhoCelula, tamanhoCelula, tamanhoCelula);
+            ctx.strokeRect(margem + x*tamanhoCelula, margem + y*tamanhoCelula, tamanhoCelula - 1, tamanhoCelula - 1);
+    }
+
+        function EscreverNickCanvas(ctx, texto, x, y)
+        {
+                        ctx.fillStyle = 'white';
+                        ctx.fillText(texto, x*tamanhoCelula - calibragemNickx, y*tamanhoCelula - calibragemNicky);
+                    }
+
+        function Conectar() {
+
+            socket = new WebSocket(uri);
+            socket.onopen = function (e) {
+                console.log("Conexão Estabelecida!");
+                while ( typeof jogadores === undefined || typeof jogadorDoClient === undefined || typeof celulas === undefined)
+                {
+                    socket.send("receive");
+                }
+
+                while ( jogadores === null || jogadorDoClient === null || celulas === null)
+                {
+                    socket.send("receive");
+                }
+
+                requestAnimationFrame(renderizar);
+            };
+
+            socket.onclose = function (e) {
+                console.log("Conexão Fechada.");
+            };
+
+
+            socket.onmessage = function (e) {
+                if (e.data[0] == '[')
+                {
+                    json = JSON.parse(e.data);
+
+                    if (json[0].tipoMensagem == 'dungeon') {
+                        celulas = json;
+                    }
+                    if (json[0].tipoMensagem == 'jogadores') {
+                        jogadores = json;
+                    }
+                    if (json[0].tipoMensagem == 'jogadorDoClient')
+                    {
+                        jogadorDoClient = json;
+                    }
+
+                    return true;
+                }
+                //var ctx = carregaContexto('meuCanvas');
+            };
+
+        }
+
+        function carregaContexto(idCanvas)
+        {
+        var elemento = document.getElementById(idCanvas);
+            if (elemento && elemento.getContext)
+            {
+                var contexto = elemento.getContext('2d');
+                if (contexto)
+                {
+                 return contexto;
+                }
+            }
+        return FALSE;
+        }
+
+        //inicio:
+        Conectar();
+        //Adicionar um requestanimation previo que rode apenas um if, checando se os 3 json estão preenchidos. Caso estejam, cancela aquele animation frame e inicia o renderizar.
+
+        function renderizar()
+        {
+            
+
+            var ctx = carregaContexto('meuCanvas');
+
+            if (ctx) {
+
+                if (celulas != null) {
+                    ctx.canvas.width = celulas[0].tamanhoDunX * tamanhoCelula;
+                    ctx.canvas.height = celulas[0].tamanhoDunY * tamanhoCelula;
+
+                    DesenharDungeon(celulas, ctx);
+                }
+
+
+                if (jogadores != null && jogadorDoClient != null)
+                {
+                    for (var i = 0; i < jogadores.length; i++)
+                   {
+                       if (jogadores[i].idJogador != jogadorDoClient[0].idJogador)
+                       {
+                           if ((jogadorDoClient[0].areaAtualx == jogadores[i].areaAtualx) && (jogadorDoClient[0].areaAtualy == jogadores[i].areaAtualy))
+                           {
+                               DesenharTile(ctx, jogadores[i].coordxJog, jogadores[i].coordyJog, 'outroJogador', false);
+                               EscreverNickCanvas(ctx, jogadores[i].nomeJogador, jogadores[i].coordxJog, jogadores[i].coordyJog);
+                           }
+                       }
+
+                       
+                   }
+                }
+                if (jogadorDoClient != null)
+                {
+                    DesenharTile(ctx, jogadorDoClient[0].coordxJog, jogadorDoClient[0].coordyJog, 'jogadorDoClient', false);
+                    EscreverNickCanvas(ctx, jogadorDoClient[0].nomeJogador, jogadorDoClient[0].coordxJog, jogadorDoClient[0].coordyJog);
+                }
+
+            
+          
+         
+         
+            }
+            moveUpdate();
+            requestAnimationFrame(renderizar);
+        }
+        
+    </script>
+
+</body>
+</html>

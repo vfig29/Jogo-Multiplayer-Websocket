@@ -1,0 +1,65 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+</head>
+<body>
+
+    <h2>Seja bem-vindo ao chateliote 1.0</h2>
+
+    <input type="text" placeholder="Insira sua mensagem:" id="msgEnviada"/>
+    <button id="botaoDeEnviar">Enviar</button>
+    <ul id="listaDeMensagens"></ul>
+    <script type="text/javascript">
+        let socket;
+        var uri = "ws://localhost:5000/ws";
+        function Conectar()
+        {
+
+            socket = new WebSocket(uri);
+            socket.onopen = function(e)
+            {
+                console.log("Conexão Estabelecida!");
+
+            };
+
+            socket.onclose = function(e)
+            {
+                console.log("Conexão Fechada.");
+            };
+
+            socket.onmessage = function(e)
+            {
+                appendItem(lista, e.data);
+                console.log(e.data);
+            };
+
+        }
+
+    //inicio:
+        Conectar();
+        var lista = document.getElementById("listaDeMensagens");
+        var botaoDeEnviar = document.getElementById("botaoDeEnviar");
+        botaoDeEnviar.addEventListener("click", function()
+        {
+            var EnviarMensagem = function(element)
+            {
+                console.log("enviando mensagem ----------");
+                socket.send(element);
+            }
+            var mensagem = document.getElementById("msgEnviada");
+            EnviarMensagem(mensagem.value);
+
+
+        });
+        function appendItem(lista, mensagemData){
+            var item = document.createElement("li");
+            item.appendChild(document.createTextNode(mensagemData));
+            lista.appendChild(item);
+        }
+
+    </script>
+
+</body>
+</html>
